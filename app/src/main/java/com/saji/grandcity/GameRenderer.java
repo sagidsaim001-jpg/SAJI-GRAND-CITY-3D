@@ -240,19 +240,41 @@ public class GameRenderer implements GLSurfaceView.Renderer {
     }
 
     private void drawTraffic() {
-        for (int i = 0; i < 3; i++) {
-            float z = ((gameTime * (4.0f + i) + i * 34f) % 120f) - 60f;
+        for (int i = 0; i < 4; i++) {
+            float progress = (gameTime * (4.0f + i * 0.55f) + i * 29f) % 120f;
+            boolean headingSouth = (i % 2 == 1);
+            float z = headingSouth ? 60f - progress : progress - 60f;
             float x = (i % 2 == 0) ? -3.8f : 3.8f;
-            float bodyR = i == 0 ? 0.62f : (i == 1 ? 0.16f : 0.72f);
-            float bodyG = i == 1 ? 0.42f : 0.20f;
+            float bodyR = i == 0 ? 0.62f : (i == 1 ? 0.16f : (i == 2 ? 0.72f : 0.18f));
+            float bodyG = i == 1 ? 0.42f : (i == 3 ? 0.48f : 0.20f);
             float bodyB = i == 2 ? 0.18f : 0.25f;
-            box(x, 0.52f, z, 2.0f, 0.72f, 3.8f, bodyR, bodyG, bodyB, 1f);
-            box(x, 1.02f, z - 0.25f, 1.45f, 0.52f, 1.75f, 0.24f, 0.38f, 0.48f, 1f);
+            trafficBox(x, 0.52f, z, 2.0f, 0.72f, 3.8f, headingSouth,
+                    bodyR, bodyG, bodyB);
+            trafficBox(x, 1.02f, z - 0.25f, 1.45f, 0.52f, 1.75f, headingSouth,
+                    0.24f, 0.38f, 0.48f);
             for (int wheel = -1; wheel <= 1; wheel += 2) {
-                box(x + 1.02f * wheel, 0.28f, z - 1.15f, 0.22f, 0.48f, 0.7f, 0.06f, 0.06f, 0.07f, 1f);
-                box(x + 1.02f * wheel, 0.28f, z + 1.15f, 0.22f, 0.48f, 0.7f, 0.06f, 0.06f, 0.07f, 1f);
+                trafficBox(x + 1.02f * wheel, 0.28f, z - 1.15f,
+                        0.22f, 0.48f, 0.7f, headingSouth, 0.06f, 0.06f, 0.07f);
+                trafficBox(x + 1.02f * wheel, 0.28f, z + 1.15f,
+                        0.22f, 0.48f, 0.7f, headingSouth, 0.06f, 0.06f, 0.07f);
             }
+            trafficBox(x - 0.62f, 0.72f, z - (headingSouth ? -1.94f : 1.94f),
+                    0.36f, 0.18f, 0.08f, headingSouth, 0.98f, 0.88f, 0.58f);
+            trafficBox(x + 0.62f, 0.72f, z - (headingSouth ? -1.94f : 1.94f),
+                    0.36f, 0.18f, 0.08f, headingSouth, 0.98f, 0.88f, 0.58f);
         }
+    }
+
+    private void trafficBox(float x, float y, float z, float sx, float sy, float sz,
+                            boolean reverse, float r, float g, float b) {
+        Matrix.setIdentityM(model, 0);
+        Matrix.translateM(model, 0, x, y, z);
+        if (reverse) Matrix.rotateM(model, 0, 180f, 0f, 1f, 0f);
+        Matrix.scaleM(model, 0, sx, sy, sz);
+        Matrix.multiplyMM(mvp, 0, vp, 0, model, 0);
+        GLES20.glUniformMatrix4fv(mvpHandle, 1, false, mvp, 0);
+        GLES20.glUniform4f(colorHandle, r, g, b, 1f);
+        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 36);
     }
 
     // Low-poly player vehicle. Every part shares the same steering rotation.
