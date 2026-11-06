@@ -99,8 +99,8 @@ public class GameHudView extends View {
         canvas.drawRect(mapX+mapR*0.58f, mapY-mapR, mapX+mapR*0.68f, mapY+mapR, paint);
         canvas.drawRect(mapX-mapR, mapY-mapR*0.68f, mapX+mapR, mapY-mapR*0.58f, paint);
         canvas.drawRect(mapX-mapR, mapY+mapR*0.58f, mapX+mapR, mapY+mapR*0.68f, paint);
-        float px = mapX + Math.max(-1f, Math.min(1f, renderer.getPlayerX()/60f)) * mapR * 0.82f;
-        float py = mapY + Math.max(-1f, Math.min(1f, renderer.getPlayerZ()/75f)) * mapR * 0.82f;
+        float px = mapX + Math.max(-1f, Math.min(1f, renderer.getPlayerX()/120f)) * mapR * 0.82f;
+        float py = mapY + Math.max(-1f, Math.min(1f, renderer.getPlayerZ()/140f)) * mapR * 0.82f;
         canvas.rotate((float)Math.toDegrees(renderer.getFacing()), px, py);
         paint.setColor(0xFFFFD45C);
         Path arrow = new Path();
@@ -116,7 +116,7 @@ public class GameHudView extends View {
         canvas.drawText("MAP", mapX, mapY+mapR+18f, paint);
         paint.setTextAlign(Paint.Align.LEFT);
         paint.setTextSize(13f);
-        canvas.drawText("Prototype 0.2  |  Touch controls", width * 0.40f, height - 24, paint);
+        canvas.drawText("Expanded City 4X  |  Touch controls", width * 0.40f, height - 24, paint);
     }
 
     private void drawButton(Canvas canvas, float x, float y, float radius, String label, boolean active) {
