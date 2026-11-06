@@ -252,23 +252,35 @@ public class GameRenderer implements GLSurfaceView.Renderer {
         }
     }
 
-    // Low-poly player vehicle used by the mobile driving mode.
+    // Low-poly player vehicle. Every part shares the same steering rotation.
     private void drawPlayerCar() {
-        float x = playerX;
-        float z = playerZ;
-        box(x, 0.62f, z, 2.15f, 0.72f, 4.0f, 0.72f, 0.12f, 0.10f, 1f);
-        box(x, 1.12f, z + 0.12f, 1.58f, 0.72f, 2.0f, 0.18f, 0.28f, 0.36f, 1f);
-        box(x, 1.48f, z + 0.12f, 1.34f, 0.08f, 1.72f, 0.10f, 0.16f, 0.22f, 1f);
-        box(x - 0.72f, 0.72f, z - 2.02f, 0.42f, 0.22f, 0.08f, 0.98f, 0.88f, 0.56f, 1f);
-        box(x + 0.72f, 0.72f, z - 2.02f, 0.42f, 0.22f, 0.08f, 0.98f, 0.88f, 0.56f, 1f);
-        box(x - 0.72f, 0.68f, z + 2.02f, 0.38f, 0.22f, 0.08f, 0.85f, 0.08f, 0.05f, 1f);
-        box(x + 0.72f, 0.68f, z + 2.02f, 0.38f, 0.22f, 0.08f, 0.85f, 0.08f, 0.05f, 1f);
+        carBox(0f, 0.62f, 0f, 2.15f, 0.72f, 4.0f, 0.72f, 0.12f, 0.10f, 1f);
+        carBox(0f, 1.12f, 0.12f, 1.58f, 0.72f, 2.0f, 0.18f, 0.28f, 0.36f, 1f);
+        carBox(0f, 1.48f, 0.12f, 1.34f, 0.08f, 1.72f, 0.10f, 0.16f, 0.22f, 1f);
+        carBox(-0.72f, 0.72f, -2.02f, 0.42f, 0.22f, 0.08f, 0.98f, 0.88f, 0.56f, 1f);
+        carBox(0.72f, 0.72f, -2.02f, 0.42f, 0.22f, 0.08f, 0.98f, 0.88f, 0.56f, 1f);
+        carBox(-0.72f, 0.68f, 2.02f, 0.38f, 0.22f, 0.08f, 0.85f, 0.08f, 0.05f, 1f);
+        carBox(0.72f, 0.68f, 2.02f, 0.38f, 0.22f, 0.08f, 0.85f, 0.08f, 0.05f, 1f);
         for (int side = -1; side <= 1; side += 2) {
             for (int axle = -1; axle <= 1; axle += 2) {
-                box(x + side * 1.08f, 0.38f, z + axle * 1.25f,
+                carBox(side * 1.08f, 0.38f, axle * 1.25f,
                         0.28f, 0.62f, 0.82f, 0.035f, 0.04f, 0.05f, 1f);
             }
         }
+    }
+
+    private void carBox(float localX, float y, float localZ,
+                        float sx, float sy, float sz,
+                        float r, float g, float b, float a) {
+        Matrix.setIdentityM(model, 0);
+        Matrix.translateM(model, 0, playerX, 0f, playerZ);
+        Matrix.rotateM(model, 0, (float)Math.toDegrees(facing), 0f, 1f, 0f);
+        Matrix.translateM(model, 0, localX, y, localZ);
+        Matrix.scaleM(model, 0, sx, sy, sz);
+        Matrix.multiplyMM(mvp, 0, vp, 0, model, 0);
+        GLES20.glUniformMatrix4fv(mvpHandle, 1, false, mvp, 0);
+        GLES20.glUniform4f(colorHandle, r, g, b, a);
+        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 36);
     }
 
     private void drawPlayer() {
