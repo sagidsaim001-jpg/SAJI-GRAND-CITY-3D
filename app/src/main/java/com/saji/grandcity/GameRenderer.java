@@ -92,7 +92,7 @@ public class GameRenderer implements GLSurfaceView.Renderer {
     public void onSurfaceChanged(GL10 gl, int width, int height) {
         GLES20.glViewport(0, 0, width, height);
         float ratio = (float) width / Math.max(1, height);
-        Matrix.perspectiveM(projection, 0, 60f, ratio, 0.1f, 260f);
+        Matrix.perspectiveM(projection, 0, 60f, ratio, 0.1f, 520f);
     }
 
     @Override
@@ -150,24 +150,24 @@ public class GameRenderer implements GLSurfaceView.Renderer {
             playerX += dx * speed * dt;
             playerZ += dz * speed * dt;
         }
-        playerX = clamp(playerX, -48f, 48f);
-        playerZ = clamp(playerZ, -60f, 60f);
+        playerX = clamp(playerX, -100f, 100f);
+        playerZ = clamp(playerZ, -120f, 120f);
     }
 
     private void drawCity() {
         // Grass and the two main roads.
-        box(0f, -0.42f, 0f, 125f, 0.3f, 150f, 0.20f, 0.34f, 0.22f, 1f);
-        box(0f, -0.20f, 0f, 13f, 0.12f, 150f, 0.16f, 0.17f, 0.19f, 1f);
-        box(0f, -0.19f, 0f, 125f, 0.12f, 12f, 0.16f, 0.17f, 0.19f, 1f);
-        box(-7.2f, -0.10f, 0f, 1.2f, 0.18f, 150f, 0.52f, 0.52f, 0.49f, 1f);
-        box(7.2f, -0.10f, 0f, 1.2f, 0.18f, 150f, 0.52f, 0.52f, 0.49f, 1f);
-        box(0f, -0.08f, -6.8f, 125f, 0.18f, 1.2f, 0.52f, 0.52f, 0.49f, 1f);
-        box(0f, -0.08f, 6.8f, 125f, 0.18f, 1.2f, 0.52f, 0.52f, 0.49f, 1f);
+        box(0f, -0.42f, 0f, 250f, 0.3f, 300f, 0.20f, 0.34f, 0.22f, 1f);
+        box(0f, -0.20f, 0f, 13f, 0.12f, 300f, 0.16f, 0.17f, 0.19f, 1f);
+        box(0f, -0.19f, 0f, 250f, 0.12f, 12f, 0.16f, 0.17f, 0.19f, 1f);
+        box(-7.2f, -0.10f, 0f, 1.2f, 0.18f, 300f, 0.52f, 0.52f, 0.49f, 1f);
+        box(7.2f, -0.10f, 0f, 1.2f, 0.18f, 300f, 0.52f, 0.52f, 0.49f, 1f);
+        box(0f, -0.08f, -6.8f, 250f, 0.18f, 1.2f, 0.52f, 0.52f, 0.49f, 1f);
+        box(0f, -0.08f, 6.8f, 250f, 0.18f, 1.2f, 0.52f, 0.52f, 0.49f, 1f);
 
-        for (int z = -70; z <= 70; z += 8) {
+        for (int z = -140; z <= 140; z += 8) {
             box(0f, -0.125f, z, 0.18f, 0.025f, 3.4f, 0.88f, 0.84f, 0.68f, 1f);
         }
-        for (int x = -60; x <= 60; x += 8) {
+        for (int x = -120; x <= 120; x += 8) {
             box(x, -0.12f, 0f, 3.4f, 0.025f, 0.18f, 0.88f, 0.84f, 0.68f, 1f);
         }
 
@@ -229,11 +229,52 @@ public class GameRenderer implements GLSurfaceView.Renderer {
         }
         // Side streets create a wider connected urban grid.
         for (int side = -1; side <= 1; side += 2) {
-            float x = side * 39f;
-            box(x, -0.20f, 0f, 8f, 0.12f, 150f,
+            float x = side * 78f;
+            box(x, -0.20f, 0f, 8f, 0.12f, 300f,
                     0.17f, 0.18f, 0.20f, 1f);
-            for (int z = -60; z <= 60; z += 20) {
+            for (int z = -120; z <= 120; z += 20) {
                 box(x, -0.12f, z, 8f, 0.025f, 0.18f,
+                        0.85f, 0.82f, 0.68f, 1f);
+            }
+        }
+        // New outer districts double both playable dimensions, giving roughly four times the land area.
+        for (int sideX = -1; sideX <= 1; sideX += 2) {
+            for (int sideZ = -1; sideZ <= 1; sideZ += 2) {
+                float districtX = sideX * 66f;
+                float districtZ = sideZ * 92f;
+                box(districtX, -0.18f, districtZ, 42f, 0.10f, 48f,
+                        0.24f, 0.38f, 0.25f, 1f);
+                for (int row = 0; row < 3; row++) {
+                    for (int col = 0; col < 2; col++) {
+                        float bx = districtX + (col == 0 ? -12f : 12f);
+                        float bz = districtZ + (row - 1) * 15f;
+                        float bh = 7f + ((row + col) % 3) * 3f;
+                        float shade = 0.38f + ((row + col) % 2) * 0.10f;
+                        box(bx, bh * 0.5f, bz, 9f, bh, 10f,
+                                shade, 0.39f, 0.31f, 1f);
+                        box(bx, bh + 0.12f, bz, 9.5f, 0.25f, 10.5f,
+                                0.22f, 0.23f, 0.25f, 1f);
+                        box(bx - sideX * 4.56f, 2.2f, bz, 0.08f, 1.1f, 1.6f,
+                                0.32f, 0.62f, 0.76f, 1f);
+                    }
+                }
+                for (int tree = -1; tree <= 1; tree++) {
+                    float tx = districtX + tree * 14f;
+                    float tz = districtZ + sideZ * 26f;
+                    box(tx, 1.1f, tz, 0.45f, 2.2f, 0.45f,
+                            0.34f, 0.22f, 0.12f, 1f);
+                    box(tx, 2.8f, tz, 2.2f, 2.4f, 2.2f,
+                            0.12f, 0.38f, 0.18f, 1f);
+                }
+            }
+        }
+        // Cross-city connectors join the expanded districts to the original avenue.
+        for (int side = -1; side <= 1; side += 2) {
+            float z = side * 72f;
+            box(0f, -0.20f, z, 250f, 0.12f, 8f,
+                    0.17f, 0.18f, 0.20f, 1f);
+            for (int x = -120; x <= 120; x += 20) {
+                box(x, -0.12f, z, 0.18f, 0.025f, 8f,
                         0.85f, 0.82f, 0.68f, 1f);
             }
         }
