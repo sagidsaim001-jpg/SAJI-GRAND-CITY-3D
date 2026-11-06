@@ -70,6 +70,11 @@ public class GameHudView extends View {
         paint.setColor(0xCCFFFFFF);
         paint.setTextSize(16f);
         canvas.drawText("Move", width * 0.17f - 22, height * 0.94f, paint);
+        paint.setTextSize(17f);
+        paint.setFakeBoldText(true);
+        String speedLabel = drivingMode ? String.format(java.util.Locale.US, "SPEED  %02d", Math.round(renderer.getSpeed() * 3.6f)) : "WALK MODE";
+        canvas.drawText(speedLabel, width * 0.70f, height * 0.13f, paint);
+        paint.setFakeBoldText(false);
         paint.setTextSize(13f);
         canvas.drawText("Prototype 0.1  |  Touch controls", width * 0.40f, height - 24, paint);
     }
