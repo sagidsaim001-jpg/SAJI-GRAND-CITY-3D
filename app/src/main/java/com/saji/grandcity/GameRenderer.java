@@ -287,14 +287,37 @@ public class GameRenderer implements GLSurfaceView.Renderer {
     }
 
     private void drawPlayer() {
-        float x = playerX;
-        float z = playerZ;
-        box(x, 1.12f, z, 0.82f, 1.05f, 0.48f, 0.10f, 0.22f, 0.42f, 1f);
-        box(x, 1.92f, z, 0.48f, 0.48f, 0.46f, 0.72f, 0.52f, 0.38f, 1f);
-        box(x - 0.24f, 0.42f, z, 0.28f, 0.82f, 0.32f, 0.12f, 0.13f, 0.16f, 1f);
-        box(x + 0.24f, 0.42f, z, 0.28f, 0.82f, 0.32f, 0.12f, 0.13f, 0.16f, 1f);
-        box(x - 0.56f, 1.12f, z, 0.25f, 0.88f, 0.28f, 0.72f, 0.52f, 0.38f, 1f);
-        box(x + 0.56f, 1.12f, z, 0.25f, 0.88f, 0.28f, 0.72f, 0.52f, 0.38f, 1f);
+        float swing = Math.min(1f, speed / 3f);
+        float cycle = (float)Math.sin(gameTime * 9.5f) * 30f * swing;
+        playerPart(0f, 1.12f, 0f, 0.82f, 1.05f, 0.48f,
+                0f, 0.10f, 0.22f, 0.42f);
+        playerPart(0f, 1.92f, 0f, 0.48f, 0.48f, 0.46f,
+                0f, 0.72f, 0.52f, 0.38f);
+        // Opposite leg and arm swings create a simple continuous walking cycle.
+        playerPart(-0.24f, 0.82f, 0f, 0.28f, 0.82f, 0.32f,
+                cycle, 0.12f, 0.13f, 0.16f);
+        playerPart(0.24f, 0.82f, 0f, 0.28f, 0.82f, 0.32f,
+                -cycle, 0.12f, 0.13f, 0.16f);
+        playerPart(-0.56f, 1.55f, 0f, 0.25f, 0.88f, 0.28f,
+                -cycle * 0.72f, 0.72f, 0.52f, 0.38f);
+        playerPart(0.56f, 1.55f, 0f, 0.25f, 0.88f, 0.28f,
+                cycle * 0.72f, 0.72f, 0.52f, 0.38f);
+    }
+
+    private void playerPart(float localX, float pivotY, float localZ,
+                            float sx, float sy, float sz, float angle,
+                            float r, float g, float b) {
+        Matrix.setIdentityM(model, 0);
+        Matrix.translateM(model, 0, playerX, 0f, playerZ);
+        Matrix.rotateM(model, 0, (float)Math.toDegrees(facing), 0f, 1f, 0f);
+        Matrix.translateM(model, 0, localX, pivotY, localZ);
+        Matrix.rotateM(model, 0, angle, 1f, 0f, 0f);
+        Matrix.translateM(model, 0, 0f, -sy * 0.5f, 0f);
+        Matrix.scaleM(model, 0, sx, sy, sz);
+        Matrix.multiplyMM(mvp, 0, vp, 0, model, 0);
+        GLES20.glUniformMatrix4fv(mvpHandle, 1, false, mvp, 0);
+        GLES20.glUniform4f(colorHandle, r, g, b, 1f);
+        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 36);
     }
 
     private void box(float x, float y, float z, float sx, float sy, float sz,
