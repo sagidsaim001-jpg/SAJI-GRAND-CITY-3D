@@ -15,7 +15,7 @@ public class GameRenderer implements GLSurfaceView.Renderer {
     private static final String VERTEX_SHADER =
             "attribute vec3 aPosition; uniform mat4 uMvp; void main(){ gl_Position=uMvp*vec4(aPosition,1.0); }";
     private static final String FRAGMENT_SHADER =
-            "precision mediump float; uniform vec4 uColor; void main(){ gl_FragColor=uColor; }";
+            "precision mediump float; uniform vec4 uColor; void main(){ float faceLight=gl_FrontFacing?1.0:0.72; float fog=smoothstep(0.88,1.0,gl_FragCoord.z); vec3 lit=uColor.rgb*faceLight; vec3 sky=vec3(0.50,0.72,0.86); gl_FragColor=vec4(mix(lit,sky,fog),uColor.a); }";
 
     private final float[] projection = new float[16];
     private final float[] view = new float[16];
@@ -113,6 +113,7 @@ public class GameRenderer implements GLSurfaceView.Renderer {
         Matrix.multiplyMM(vp, 0, projection, 0, view, 0);
 
         drawCity();
+        drawDistantHills();
         drawTraffic();
         drawPlayer();
         GLES20.glDisableVertexAttribArray(positionHandle);
@@ -199,6 +200,28 @@ public class GameRenderer implements GLSurfaceView.Renderer {
                 float lampX = side * 6.4f;
                 box(lampX, 2.4f, z + 5f, 0.12f, 4.8f, 0.12f, 0.12f, 0.13f, 0.15f, 1f);
                 box(lampX, 4.8f, z + 5f, 0.8f, 0.16f, 0.5f, 0.95f, 0.83f, 0.53f, 1f);
+            }
+        }
+    }
+
+    // Low-poly mountain silhouettes add depth beyond the playable city blocks.
+    private void drawDistantHills() {
+        for (int i = 0; i < 15; i++) {
+            float z = -105f + i * 15f;
+            float h = 12f + (i % 4) * 4f;
+            box(-72f, h * 0.5f, z, 22f, h, 28f,
+                    0.25f, 0.34f, 0.31f, 1f);
+            box(72f, h * 0.5f, z + 4f, 22f, h + 3f, 30f,
+                    0.28f, 0.37f, 0.32f, 1f);
+        }
+        // Side streets create a wider connected urban grid.
+        for (int side = -1; side <= 1; side += 2) {
+            float x = side * 39f;
+            box(x, -0.20f, 0f, 8f, 0.12f, 150f,
+                    0.17f, 0.18f, 0.20f, 1f);
+            for (int z = -60; z <= 60; z += 20) {
+                box(x, -0.12f, z, 8f, 0.025f, 0.18f,
+                        0.85f, 0.82f, 0.68f, 1f);
             }
         }
     }
