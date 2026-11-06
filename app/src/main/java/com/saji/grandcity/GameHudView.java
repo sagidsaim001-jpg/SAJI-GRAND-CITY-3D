@@ -17,6 +17,7 @@ public class GameHudView extends View {
     private float joystickY;
     private boolean go;
     private boolean stop;
+    private boolean drivingMode;
     private float width;
     private float height;
 
@@ -59,8 +60,10 @@ public class GameHudView extends View {
         paint.setColor(0xDDE8F2FA);
         canvas.drawCircle(knobX, knobY, radius * 0.38f, paint);
 
-        // Accelerator and brake.
+        // Driving mode toggle plus accelerator and brake.
         float buttonRadius = Math.min(width, height) * 0.075f;
+        drawButton(canvas, width * 0.86f, height * 0.36f, buttonRadius * 0.82f,
+                drivingMode ? "WALK" : "DRIVE", drivingMode);
         drawButton(canvas, width * 0.86f, height * 0.70f, buttonRadius, "GO", go);
         drawButton(canvas, width * 0.86f, height * 0.89f, buttonRadius, "STOP", stop);
 
@@ -96,7 +99,10 @@ public class GameHudView extends View {
         if (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_POINTER_DOWN) {
             float x = event.getX(index);
             float y = event.getY(index);
-            if (joystickPointer == -1 && x < width * 0.48f && y > height * 0.42f) {
+            if (x > width * 0.72f && y > height * 0.20f && y < height * 0.50f) {
+                drivingMode = !drivingMode;
+                renderer.setDriving(drivingMode);
+            } else if (joystickPointer == -1 && x < width * 0.48f && y > height * 0.42f) {
                 joystickPointer = id;
                 updateJoystick(x, y);
             } else if (pedalPointer == -1 && x > width * 0.68f && y > height * 0.52f) {
