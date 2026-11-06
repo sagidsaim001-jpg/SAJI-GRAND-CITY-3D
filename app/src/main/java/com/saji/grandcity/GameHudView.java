@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.RectF;
 import android.view.MotionEvent;
 import android.view.View;
@@ -75,8 +76,47 @@ public class GameHudView extends View {
         String speedLabel = drivingMode ? String.format(java.util.Locale.US, "SPEED  %02d", Math.round(renderer.getSpeed() * 3.6f)) : "WALK MODE";
         canvas.drawText(speedLabel, width * 0.70f, height * 0.13f, paint);
         paint.setFakeBoldText(false);
+
+        // Compact live mini-map: main roads, side streets and player heading.
+        float mapX = width * 0.86f;
+        float mapY = height * 0.15f;
+        float mapR = Math.min(width, height) * 0.105f;
+        paint.setColor(0xCC101D2A);
+        canvas.drawCircle(mapX, mapY, mapR, paint);
+        paint.setColor(0xFF62717C);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(3f);
+        canvas.drawCircle(mapX, mapY, mapR, paint);
+        paint.setStyle(Paint.Style.FILL);
+        canvas.save();
+        canvas.clipRect(mapX-mapR+4, mapY-mapR+4, mapX+mapR-4, mapY+mapR-4);
+        paint.setColor(0xFF52665B);
+        canvas.drawRect(mapX-mapR, mapY-mapR, mapX+mapR, mapY+mapR, paint);
+        paint.setColor(0xFFB9B5A5);
+        canvas.drawRect(mapX-mapR*0.12f, mapY-mapR, mapX+mapR*0.12f, mapY+mapR, paint);
+        canvas.drawRect(mapX-mapR, mapY-mapR*0.12f, mapX+mapR, mapY+mapR*0.12f, paint);
+        canvas.drawRect(mapX-mapR*0.68f, mapY-mapR, mapX-mapR*0.58f, mapY+mapR, paint);
+        canvas.drawRect(mapX+mapR*0.58f, mapY-mapR, mapX+mapR*0.68f, mapY+mapR, paint);
+        canvas.drawRect(mapX-mapR, mapY-mapR*0.68f, mapX+mapR, mapY-mapR*0.58f, paint);
+        canvas.drawRect(mapX-mapR, mapY+mapR*0.58f, mapX+mapR, mapY+mapR*0.68f, paint);
+        float px = mapX + Math.max(-1f, Math.min(1f, renderer.getPlayerX()/60f)) * mapR * 0.82f;
+        float py = mapY + Math.max(-1f, Math.min(1f, renderer.getPlayerZ()/75f)) * mapR * 0.82f;
+        canvas.rotate((float)Math.toDegrees(renderer.getFacing()), px, py);
+        paint.setColor(0xFFFFD45C);
+        Path arrow = new Path();
+        arrow.moveTo(px, py-mapR*0.20f);
+        arrow.lineTo(px-mapR*0.13f, py+mapR*0.14f);
+        arrow.lineTo(px+mapR*0.13f, py+mapR*0.14f);
+        arrow.close();
+        canvas.drawPath(arrow, paint);
+        canvas.restore();
+        paint.setColor(0xCCFFFFFF);
         paint.setTextSize(13f);
-        canvas.drawText("Prototype 0.1  |  Touch controls", width * 0.40f, height - 24, paint);
+        paint.setTextAlign(Paint.Align.CENTER);
+        canvas.drawText("MAP", mapX, mapY+mapR+18f, paint);
+        paint.setTextAlign(Paint.Align.LEFT);
+        paint.setTextSize(13f);
+        canvas.drawText("Prototype 0.2  |  Touch controls", width * 0.40f, height - 24, paint);
     }
 
     private void drawButton(Canvas canvas, float x, float y, float radius, String label, boolean active) {
