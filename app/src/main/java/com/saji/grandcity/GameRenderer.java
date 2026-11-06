@@ -15,7 +15,7 @@ public class GameRenderer implements GLSurfaceView.Renderer {
     private static final String VERTEX_SHADER =
             "attribute vec3 aPosition; uniform mat4 uMvp; void main(){ gl_Position=uMvp*vec4(aPosition,1.0); }";
     private static final String FRAGMENT_SHADER =
-            "precision mediump float; uniform vec4 uColor; void main(){ float faceLight=gl_FrontFacing?1.0:0.72; float fog=smoothstep(0.88,1.0,gl_FragCoord.z); vec3 lit=uColor.rgb*faceLight; vec3 sky=vec3(0.38,0.66,0.90); gl_FragColor=vec4(mix(lit,sky,fog),uColor.a); }";
+            "precision mediump float; uniform vec4 uColor; void main(){ float faceLight=gl_FrontFacing?1.0:0.72; vec3 lit=uColor.rgb*faceLight; gl_FragColor=vec4(lit,uColor.a); }";
 
     private final float[] projection = new float[16];
     private final float[] view = new float[16];
