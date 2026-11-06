@@ -15,7 +15,7 @@ public class GameRenderer implements GLSurfaceView.Renderer {
     private static final String VERTEX_SHADER =
             "attribute vec3 aPosition; uniform mat4 uMvp; void main(){ gl_Position=uMvp*vec4(aPosition,1.0); }";
     private static final String FRAGMENT_SHADER =
-            "precision mediump float; uniform vec4 uColor; void main(){ float faceLight=gl_FrontFacing?1.0:0.72; float fog=smoothstep(0.88,1.0,gl_FragCoord.z); vec3 lit=uColor.rgb*faceLight; vec3 sky=vec3(0.50,0.72,0.86); gl_FragColor=vec4(mix(lit,sky,fog),uColor.a); }";
+            "precision mediump float; uniform vec4 uColor; void main(){ float faceLight=gl_FrontFacing?1.0:0.72; float fog=smoothstep(0.88,1.0,gl_FragCoord.z); vec3 lit=uColor.rgb*faceLight; vec3 sky=vec3(0.38,0.66,0.90); gl_FragColor=vec4(mix(lit,sky,fog),uColor.a); }";
 
     private final float[] projection = new float[16];
     private final float[] view = new float[16];
@@ -73,7 +73,7 @@ public class GameRenderer implements GLSurfaceView.Renderer {
 
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-        GLES20.glClearColor(0.50f, 0.72f, 0.88f, 1f);
+        GLES20.glClearColor(0.34f, 0.62f, 0.88f, 1f);
         GLES20.glEnable(GLES20.GL_DEPTH_TEST);
         program = createProgram(VERTEX_SHADER, FRAGMENT_SHADER);
         positionHandle = GLES20.glGetAttribLocation(program, "aPosition");
@@ -109,17 +109,18 @@ public class GameRenderer implements GLSurfaceView.Renderer {
         cubeBuffer.position(0);
         GLES20.glVertexAttribPointer(positionHandle, 3, GLES20.GL_FLOAT, false, 12, cubeBuffer);
 
-        float cameraDistance = driving ? 11.5f : 8.5f;
+        float cameraDistance = driving ? 12.5f : 7.2f;
         float followX = playerX + (float)Math.sin(facing) * cameraDistance;
         float followZ = playerZ + (float)Math.cos(facing) * cameraDistance;
         cameraX += (followX - cameraX) * Math.min(1f, dt * 4f);
         cameraZ += (followZ - cameraZ) * Math.min(1f, dt * 4f);
-        Matrix.setLookAtM(view, 0, cameraX, driving ? 6.2f : 5.4f, cameraZ,
-                playerX, driving ? 0.8f : 1.0f, playerZ - 2.2f, 0f, 1f, 0f);
+        Matrix.setLookAtM(view, 0, cameraX, driving ? 6.0f : 4.6f, cameraZ,
+                playerX, driving ? 1.1f : 1.25f, playerZ, 0f, 1f, 0f);
         Matrix.multiplyMM(vp, 0, projection, 0, view, 0);
 
         drawCity();
         drawDistantHills();
+        drawSkyClouds();
         drawTraffic();
         if (driving) drawPlayerCar(); else drawPlayer();
         GLES20.glDisableVertexAttribArray(positionHandle);
@@ -280,6 +281,18 @@ public class GameRenderer implements GLSurfaceView.Renderer {
         }
     }
 
+    // Bright low-poly cloud clusters make the horizon read as an open sky.
+    private void drawSkyClouds() {
+        for (int i = 0; i < 7; i++) {
+            float x = -90f + i * 30f;
+            float z = -95f + (i % 3) * 62f;
+            float y = 27f + (i % 2) * 5f;
+            box(x, y, z, 15f, 2.2f, 5.5f, 0.88f, 0.94f, 0.98f, 1f);
+            box(x - 3.5f, y + 1.2f, z, 7f, 2.4f, 5f, 0.94f, 0.97f, 1f, 1f);
+            box(x + 3.8f, y + 0.8f, z + 0.5f, 8f, 1.8f, 4.5f, 0.91f, 0.96f, 1f, 1f);
+        }
+    }
+
     private void drawTraffic() {
         for (int i = 0; i < 4; i++) {
             float progress = (gameTime * (4.0f + i * 0.55f) + i * 29f) % 120f;
@@ -353,7 +366,7 @@ public class GameRenderer implements GLSurfaceView.Renderer {
         float swing = Math.min(1f, speed / 3f);
         float cycle = (float)Math.sin(gameTime * 9.5f) * 30f * swing;
         playerPart(0f, 1.12f, 0f, 0.82f, 1.05f, 0.48f,
-                0f, 0.10f, 0.22f, 0.42f);
+                0f, 0.08f, 0.58f, 0.88f);
         playerPart(0f, 1.92f, 0f, 0.48f, 0.48f, 0.46f,
                 0f, 0.72f, 0.52f, 0.38f);
         // Opposite leg and arm swings create a simple continuous walking cycle.
@@ -376,7 +389,7 @@ public class GameRenderer implements GLSurfaceView.Renderer {
         Matrix.translateM(model, 0, localX, pivotY, localZ);
         Matrix.rotateM(model, 0, angle, 1f, 0f, 0f);
         Matrix.translateM(model, 0, 0f, -sy * 0.5f, 0f);
-        Matrix.scaleM(model, 0, sx, sy, sz);
+        Matrix.scaleM(model, 0, sx * 1.18f, sy * 1.18f, sz * 1.18f);
         Matrix.multiplyMM(mvp, 0, vp, 0, model, 0);
         GLES20.glUniformMatrix4fv(mvpHandle, 1, false, mvp, 0);
         GLES20.glUniform4f(colorHandle, r, g, b, 1f);
