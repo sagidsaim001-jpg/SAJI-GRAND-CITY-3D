@@ -66,6 +66,9 @@ public class GameRenderer implements GLSurfaceView.Renderer {
     }
 
     public float getSpeed() { return speed; }
+    public float getPlayerX() { return playerX; }
+    public float getPlayerZ() { return playerZ; }
+    public float getFacing() { return facing; }
     public void setDriving(boolean enabled) { driving = enabled; }
 
     @Override
