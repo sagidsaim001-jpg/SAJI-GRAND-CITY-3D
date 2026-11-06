@@ -32,6 +32,7 @@ public class GameRenderer implements GLSurfaceView.Renderer {
     private volatile float stickY;
     private volatile boolean throttle;
     private volatile boolean brake;
+    private volatile boolean driving;
 
     private float playerX = 0f;
     private float playerZ = 8f;
@@ -65,6 +66,7 @@ public class GameRenderer implements GLSurfaceView.Renderer {
     }
 
     public float getSpeed() { return speed; }
+    public void setDriving(boolean enabled) { driving = enabled; }
 
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
@@ -104,18 +106,19 @@ public class GameRenderer implements GLSurfaceView.Renderer {
         cubeBuffer.position(0);
         GLES20.glVertexAttribPointer(positionHandle, 3, GLES20.GL_FLOAT, false, 12, cubeBuffer);
 
-        float followX = playerX + (float)Math.sin(facing) * 8.5f;
-        float followZ = playerZ + (float)Math.cos(facing) * 8.5f;
+        float cameraDistance = driving ? 11.5f : 8.5f;
+        float followX = playerX + (float)Math.sin(facing) * cameraDistance;
+        float followZ = playerZ + (float)Math.cos(facing) * cameraDistance;
         cameraX += (followX - cameraX) * Math.min(1f, dt * 4f);
         cameraZ += (followZ - cameraZ) * Math.min(1f, dt * 4f);
-        Matrix.setLookAtM(view, 0, cameraX, 5.4f, cameraZ,
-                playerX, 1.0f, playerZ - 2.2f, 0f, 1f, 0f);
+        Matrix.setLookAtM(view, 0, cameraX, driving ? 6.2f : 5.4f, cameraZ,
+                playerX, driving ? 0.8f : 1.0f, playerZ - 2.2f, 0f, 1f, 0f);
         Matrix.multiplyMM(vp, 0, projection, 0, view, 0);
 
         drawCity();
         drawDistantHills();
         drawTraffic();
-        drawPlayer();
+        if (driving) drawPlayerCar(); else drawPlayer();
         GLES20.glDisableVertexAttribArray(positionHandle);
     }
 
@@ -127,10 +130,17 @@ public class GameRenderer implements GLSurfaceView.Renderer {
         if (brake) forward = 0f;
 
         float magnitude = Math.min(1f, (float)Math.sqrt(x*x + forward*forward));
-        speed = magnitude * (throttle ? 15f : 9f);
+        float maxSpeed = driving ? 24f : (throttle ? 15f : 9f);
+        speed = magnitude * maxSpeed;
         if (brake) speed = 0f;
 
-        if (magnitude > 0.08f) {
+        if (driving) {
+            if (Math.abs(x) > 0.06f && speed > 0.1f) facing += x * dt * (speed / 10f) * 1.6f;
+            if (speed > 0.1f) {
+                playerX -= (float)Math.sin(facing) * speed * dt;
+                playerZ -= (float)Math.cos(facing) * speed * dt;
+            }
+        } else if (magnitude > 0.08f) {
             float dx = x;
             float dz = -forward;
             facing = (float)Math.atan2(dx, -dz);
@@ -238,6 +248,25 @@ public class GameRenderer implements GLSurfaceView.Renderer {
             for (int wheel = -1; wheel <= 1; wheel += 2) {
                 box(x + 1.02f * wheel, 0.28f, z - 1.15f, 0.22f, 0.48f, 0.7f, 0.06f, 0.06f, 0.07f, 1f);
                 box(x + 1.02f * wheel, 0.28f, z + 1.15f, 0.22f, 0.48f, 0.7f, 0.06f, 0.06f, 0.07f, 1f);
+            }
+        }
+    }
+
+    // Low-poly player vehicle used by the mobile driving mode.
+    private void drawPlayerCar() {
+        float x = playerX;
+        float z = playerZ;
+        box(x, 0.62f, z, 2.15f, 0.72f, 4.0f, 0.72f, 0.12f, 0.10f, 1f);
+        box(x, 1.12f, z + 0.12f, 1.58f, 0.72f, 2.0f, 0.18f, 0.28f, 0.36f, 1f);
+        box(x, 1.48f, z + 0.12f, 1.34f, 0.08f, 1.72f, 0.10f, 0.16f, 0.22f, 1f);
+        box(x - 0.72f, 0.72f, z - 2.02f, 0.42f, 0.22f, 0.08f, 0.98f, 0.88f, 0.56f, 1f);
+        box(x + 0.72f, 0.72f, z - 2.02f, 0.42f, 0.22f, 0.08f, 0.98f, 0.88f, 0.56f, 1f);
+        box(x - 0.72f, 0.68f, z + 2.02f, 0.38f, 0.22f, 0.08f, 0.85f, 0.08f, 0.05f, 1f);
+        box(x + 0.72f, 0.68f, z + 2.02f, 0.38f, 0.22f, 0.08f, 0.85f, 0.08f, 0.05f, 1f);
+        for (int side = -1; side <= 1; side += 2) {
+            for (int axle = -1; axle <= 1; axle += 2) {
+                box(x + side * 1.08f, 0.38f, z + axle * 1.25f,
+                        0.28f, 0.62f, 0.82f, 0.035f, 0.04f, 0.05f, 1f);
             }
         }
     }
